@@ -73,31 +73,33 @@ def main():
 
                 if chunk_header.type == 0xCAC1:  # raw type 
                     data = ifd.read(chunk_header.total_size - EXT4_CHUNK_HEADER_SIZE)
-                    if len(data) != (sector_size << 9):
-                        print("len data:%d, sector_size:%d" % (len(data), sector_size << 9))
+                    len_data = len(data)
+                    if len_data != (sector_size << 9):
+                        print("len data:%d, sector_size:%d" % (len_data, sector_size << 9))
                         sys.exit(4)
                     else:
-                        print("len data:%d, sector_size:%d" % (len(data), sector_size << 9))
+                        print("len data:%d, sector_size:%d" % (len_data, sector_size << 9))
                         ofd.write(data)
                         print("raw_chunk ")
                         print("write raw data in %d size %d \n" % (sector_base, sector_size))
-                        print("output len:%x" % output_len + len(data))
+                        print("output len:%x" % output_len + len_data)
                 else:
+                    len_data = sector_size << 9
                     if chunk_header.type == 0xCAC2:  # TYPE_FILL
                         print("fill_chunk \n")
                         print("chunk_size:%x" % chunk_header.chunk_size)
-                        print("output len:%x" % output_len)
+                        print("output len:%x" % output_len + len_data)
                     else:
                         if chunk_header.type == 0xCAC3:  # TYPE_DONT_CARE
                             print("none chunk at chunk:%d" % (file_header.total_chunks - total_chunks))
-                            print("data_size:0x%x, chunk_size:%d, block_size:%d" % (sector_size << 9, 
+                            print("data_size:0x%x, chunk_size:%d, block_size:%d" % (len_data, 
                                 chunk_header.chunk_size, file_header.block_size))
                         else:
                             print("unknown type!!")
-                            print("output len:%x" % output_len + len(data))
+                            print("output len:%x" % output_len + len_data)
                             
-                    ofd.write(struct.pack("B", 0) * (sector_size << 9)) 
-                output_len += len(data)
+                    ofd.write(struct.pack("B", 0) * len_data) 
+                output_len += len_data
                 sector_base += sector_size   
 
                 total_chunks -= 1 
